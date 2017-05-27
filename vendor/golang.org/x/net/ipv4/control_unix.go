@@ -1,8 +1,8 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd linux netbsd openbsd
+// +build darwin dragonfly freebsd linux netbsd openbsd solaris
 
 package ipv4
 
@@ -12,13 +12,14 @@ import (
 	"unsafe"
 
 	"golang.org/x/net/internal/iana"
+	"golang.org/x/net/internal/socket"
 )
 
-func setControlMessage(s uintptr, opt *rawOpt, cf ControlFlags, on bool) error {
+func setControlMessage(c *socket.Conn, opt *rawOpt, cf ControlFlags, on bool) error {
 	opt.Lock()
 	defer opt.Unlock()
-	if cf&FlagTTL != 0 && sockOpts[ssoReceiveTTL].name > 0 {
-		if err := setInt(s, &sockOpts[ssoReceiveTTL], boolint(on)); err != nil {
+	if so, ok := sockOpts[ssoReceiveTTL]; ok && cf&FlagTTL != 0 {
+		if err := so.SetInt(c, boolint(on)); err != nil {
 			return err
 		}
 		if on {
@@ -27,9 +28,9 @@ func setControlMessage(s uintptr, opt *rawOpt, cf ControlFlags, on bool) error {
 			opt.clear(FlagTTL)
 		}
 	}
-	if sockOpts[ssoPacketInfo].name > 0 {
+	if so, ok := sockOpts[ssoPacketInfo]; ok {
 		if cf&(FlagSrc|FlagDst|FlagInterface) != 0 {
-			if err := setInt(s, &sockOpts[ssoPacketInfo], boolint(on)); err != nil {
+			if err := so.SetInt(c, boolint(on)); err != nil {
 				return err
 			}
 			if on {
@@ -39,8 +40,8 @@ func setControlMessage(s uintptr, opt *rawOpt, cf ControlFlags, on bool) error {
 			}
 		}
 	} else {
-		if cf&FlagDst != 0 && sockOpts[ssoReceiveDst].name > 0 {
-			if err := setInt(s, &sockOpts[ssoReceiveDst], boolint(on)); err != nil {
+		if so, ok := sockOpts[ssoReceiveDst]; ok && cf&FlagDst != 0 {
+			if err := so.SetInt(c, boolint(on)); err != nil {
 				return err
 			}
 			if on {
@@ -49,8 +50,8 @@ func setControlMessage(s uintptr, opt *rawOpt, cf ControlFlags, on bool) error {
 				opt.clear(FlagDst)
 			}
 		}
-		if cf&FlagInterface != 0 && sockOpts[ssoReceiveInterface].name > 0 {
-			if err := setInt(s, &sockOpts[ssoReceiveInterface], boolint(on)); err != nil {
+		if so, ok := sockOpts[ssoReceiveInterface]; ok && cf&FlagInterface != 0 {
+			if err := so.SetInt(c, boolint(on)); err != nil {
 				return err
 			}
 			if on {
@@ -83,22 +84,6 @@ func newControlMessage(opt *rawOpt) (oob []byte) {
 	}
 	if l > 0 {
 		oob = make([]byte, l)
-		b := oob
-		if opt.isset(FlagTTL) && ctlOpts[ctlTTL].name > 0 {
-			b = ctlOpts[ctlTTL].marshal(b, nil)
-		}
-		if ctlOpts[ctlPacketInfo].name > 0 {
-			if opt.isset(FlagSrc | FlagDst | FlagInterface) {
-				b = ctlOpts[ctlPacketInfo].marshal(b, nil)
-			}
-		} else {
-			if opt.isset(FlagDst) && ctlOpts[ctlDst].name > 0 {
-				b = ctlOpts[ctlDst].marshal(b, nil)
-			}
-			if opt.isset(FlagInterface) && ctlOpts[ctlInterface].name > 0 {
-				b = ctlOpts[ctlInterface].marshal(b, nil)
-			}
-		}
 	}
 	opt.RUnlock()
 	return

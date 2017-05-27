@@ -1,4 +1,4 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -10,6 +10,8 @@ import (
 	"net"
 	"runtime"
 	"syscall"
+
+	"golang.org/x/net/internal/socket"
 )
 
 const (
@@ -63,9 +65,17 @@ func (h *Header) Marshal() ([]byte, error) {
 	b[1] = byte(h.TOS)
 	flagsAndFragOff := (h.FragOff & 0x1fff) | int(h.Flags<<13)
 	switch runtime.GOOS {
-	case "darwin", "dragonfly", "freebsd", "netbsd":
-		nativeEndian.PutUint16(b[2:4], uint16(h.TotalLen))
-		nativeEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
+	case "darwin", "dragonfly", "netbsd":
+		socket.NativeEndian.PutUint16(b[2:4], uint16(h.TotalLen))
+		socket.NativeEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
+	case "freebsd":
+		if freebsdVersion < 1100000 {
+			socket.NativeEndian.PutUint16(b[2:4], uint16(h.TotalLen))
+			socket.NativeEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
+		} else {
+			binary.BigEndian.PutUint16(b[2:4], uint16(h.TotalLen))
+			binary.BigEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
+		}
 	default:
 		binary.BigEndian.PutUint16(b[2:4], uint16(h.TotalLen))
 		binary.BigEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
@@ -110,14 +120,19 @@ func ParseHeader(b []byte) (*Header, error) {
 	}
 	switch runtime.GOOS {
 	case "darwin", "dragonfly", "netbsd":
-		h.TotalLen = int(nativeEndian.Uint16(b[2:4])) + hdrlen
-		h.FragOff = int(nativeEndian.Uint16(b[6:8]))
+		h.TotalLen = int(socket.NativeEndian.Uint16(b[2:4])) + hdrlen
+		h.FragOff = int(socket.NativeEndian.Uint16(b[6:8]))
 	case "freebsd":
-		h.TotalLen = int(nativeEndian.Uint16(b[2:4]))
-		if freebsdVersion < 1000000 {
-			h.TotalLen += hdrlen
+		if freebsdVersion < 1100000 {
+			h.TotalLen = int(socket.NativeEndian.Uint16(b[2:4]))
+			if freebsdVersion < 1000000 {
+				h.TotalLen += hdrlen
+			}
+			h.FragOff = int(socket.NativeEndian.Uint16(b[6:8]))
+		} else {
+			h.TotalLen = int(binary.BigEndian.Uint16(b[2:4]))
+			h.FragOff = int(binary.BigEndian.Uint16(b[6:8]))
 		}
-		h.FragOff = int(nativeEndian.Uint16(b[6:8]))
 	default:
 		h.TotalLen = int(binary.BigEndian.Uint16(b[2:4]))
 		h.FragOff = int(binary.BigEndian.Uint16(b[6:8]))

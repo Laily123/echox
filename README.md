@@ -1,10 +1,8 @@
-# EchoX
-
-Echo Extra
+# Echo Extra
 
 ### Running Recipes
 
-- Go into any recipe folder and run `go run server.go`
+- Go into any cookbook folder and run `go run server.go`
 
 ### Running Website Locally
 
