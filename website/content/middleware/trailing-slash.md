@@ -1,14 +1,14 @@
 +++
-title = "Trailing Slash"
-[menu.side]
-  name = "TrailingSlash"
+title = "Trailing Slash Middleware"
+description = "Trailing slash middleware for Echo"
+[menu.main]
+  name = "Trailing Slash"
   parent = "middleware"
-  weight = 5
 +++
 
-## AddTrailingSlash Middleware
+## Add Trailing Slash  
 
-AddTrailingSlash middleware adds a trailing slash to the request URI.
+Add trailing slash middleware adds a trailing slash to the request URI.
 
 *Usage*
 
@@ -17,9 +17,9 @@ e := echo.New()
 e.Pre(middleware.AddTrailingSlash())
 ```
 
-## RemoveTrailingSlash Middleware
+## Remove Trailing Slash
 
-RemoveTrailingSlash middleware removes a trailing slash from the request URI.
+Remove trailing slash middleware removes a trailing slash from the request URI.
 
 *Usage*
 
@@ -28,7 +28,7 @@ e := echo.New()
 e.Pre(middleware.RemoveTrailingSlash())
 ```
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -39,9 +39,9 @@ e.Use(middleware.AddTrailingSlashWithConfig(middleware.TrailingSlashConfig{
 }))
 ```
 
-Example above will add a trailing slash to the request URI and redirect with `308 - StatusMovedPermanently`.
+Example above will add a trailing slash to the request URI and redirect with `301 - StatusMovedPermanently`.
 
-### Configuration
+## Configuration
 
 ```go
 TrailingSlashConfig struct {
@@ -58,6 +58,6 @@ TrailingSlashConfig struct {
 
 ```go
 DefaultTrailingSlashConfig = TrailingSlashConfig{
-  Skipper: defaultSkipper,
+  Skipper: DefaultSkipper,
 }
 ```

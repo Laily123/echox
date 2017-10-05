@@ -1,27 +1,45 @@
 +++
 title = "Installation"
-[menu.side]
+description = "Installing Echo"
+[menu.main]
+  name = "Installation"
   parent = "guide"
-  weight = 1
+weight = 1
 +++
 
-## Installation
+## Prerequisites
 
-Echo is developed and tested using Go `1.6.x` and `1.7.x`
+- [Install](https://golang.org/doc/install) Go
+- [Set](https://golang.org/doc/code.html#GOPATH) GOPATH
 
-### Install the latest stable version of Echo via `go get`
-
-```sh
-$ go get github.com/labstack/echo
-```
-
-### To update Echo
+## Using [go get](https://golang.org/cmd/go/#hdr-Download_and_install_packages_and_dependencies)
 
 ```sh
-$ go get -u github.com/labstack/echo
+$ cd <PROJECT IN $GOPATH>
+$ go get -u github.com/labstack/echo/...
 ```
 
-### [Migrating from v1](/guide/migrating)
+## Using [dep](https://github.com/golang/dep)
 
-Echo follows [semantic versioning](http://semver.org) managed through GitHub releases.
-Specific version of Echo can be installed using a [package manager](https://github.com/avelino/awesome-go#package-management).
+```sh
+$ cd <PROJECT IN $GOPATH>
+$ dep ensure github.com/labstack/echo@^3.1
+```
+
+## Using [glide](http://glide.sh)
+
+```sh
+$ cd <PROJECT IN $GOPATH>
+$ glide get github.com/labstack/echo#~3.1
+```
+
+## Using [govendor](https://github.com/kardianos/govendor)
+
+```sh
+$ cd <PROJECT IN $GOPATH>
+$ govendor fetch github.com/labstack/echo@v3.1
+```
+
+Echo is developed using Go `1.8.x` and tested with Go `1.7.x` and `1.8.x`.
+Echo follows [semantic versioning](http://semver.org) managed through GitHub
+releases, specific version of Echo can be installed using a [package manager](https://github.com/avelino/awesome-go#package-management).

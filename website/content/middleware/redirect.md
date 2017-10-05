@@ -1,15 +1,15 @@
 +++
-title = "Redirect"
-[menu.side]
+title = "Redirect Middleware"
+description = "Redirect middleware for Echo"
+[menu.main]
   name = "Redirect"
   parent = "middleware"
-  weight = 5
 +++
 
-## HTTPSRedirect Middleware
+## HTTPS Redirect
 
-HTTPSRedirect middleware redirects HTTP requests to HTTPS.
-For example, http://labstack.com will be redirect to https://labstack.com.
+HTTPS redirect middleware redirects http requests to https.
+For example, http://labstack.com will be redirected to https://labstack.com.
 
 *Usage*
 
@@ -18,10 +18,10 @@ e := echo.New()
 e.Pre(middleware.HTTPSRedirect())
 ```
 
-## HTTPSWWWRedirect Middleware
+## HTTPS WWW Redirect
 
-HTTPSWWWRedirect redirects HTTP requests to WWW HTTPS.
-For example, http://labstack.com will be redirect to https://www.labstack.com.
+HTTPS WWW redirect redirects http requests to www https.
+For example, http://labstack.com will be redirected to https://www.labstack.com.
 
 *Usage*
 
@@ -30,11 +30,23 @@ e := echo.New()
 e.Pre(middleware.HTTPSWWWRedirect())
 ```
 
-## WWWRedirect Middleware
+## HTTPS NonWWW Redirect
 
-WWWRedirect redirects non WWW requests to WWW.
+HTTPS NonWWW redirect redirects http requests to https non www.
+For example, http://www.labstack.com will be redirect to https://labstack.com.
 
-For example, http://labstack.com will be redirect to http://www.labstack.com.
+*Usage*
+
+```go
+e := echo.New()
+e.Pre(middleware.HTTPSNonWWWRedirect())
+```
+
+## WWW Redirect
+
+WWW redirect redirects non www requests to www.
+
+For example, http://labstack.com will be redirected to http://www.labstack.com.
 
 *Usage*
 
@@ -43,10 +55,10 @@ e := echo.New()
 e.Pre(middleware.WWWRedirect())
 ```
 
-## NonWWWRedirect Middleware
+## NonWWW Redirect
 
-NonWWWRedirect redirects WWW requests to non WWW.
-For example, http://www.labstack.com will be redirect to http://labstack.com.
+NonWWW redirect redirects www requests to non www.
+For example, http://www.labstack.com will be redirected to http://labstack.com.
 
 *Usage*
 
@@ -55,7 +67,7 @@ e := echo.New()
 e.Pre(middleware.NonWWWRedirect())
 ```
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -68,7 +80,7 @@ e.Use(middleware.HTTPSRedirectWithConfig(middleware.RedirectConfig{
 
 Example above will redirect the request HTTP to HTTPS with status code `307 - StatusTemporaryRedirect`.
 
-### Configuration
+## Configuration
 
 ```go
 RedirectConfig struct {
@@ -85,7 +97,7 @@ RedirectConfig struct {
 
 ```go
 DefaultRedirectConfig = RedirectConfig{
-  Skipper: defaultSkipper,
+  Skipper: DefaultSkipper,
   Code:    http.StatusMovedPermanently,
 }
 ```

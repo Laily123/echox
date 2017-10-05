@@ -1,16 +1,13 @@
----
-title: Routing
-menu:
-  side:
-    parent: guide
-    weight: 4
----
++++
+title = "Routing"
+description = "Routing HTTP request in Echo"
+[menu.main]
+  name = "Routing"
+  parent = "guide"
++++
 
-## Routing
-
-Echo's router is [fast, optimized]({{< ref "index.md#performance">}}) and
-flexible. It's based on [radix tree](http://en.wikipedia.org/wiki/Radix_tree) data
-structure which makes route lookup really fast. Router leverages [sync pool](https://golang.org/pkg/sync/#Pool)
+Echo's router is based on [radix tree](http://en.wikipedia.org/wiki/Radix_tree), making
+route lookup really fast. It leverages [sync pool](https://golang.org/pkg/sync/#Pool)
 to reuse memory and achieve zero dynamic memory allocation with no GC overhead.
 
 Routes can be registered by specifying HTTP method, path and a matching handler.
@@ -33,7 +30,7 @@ If you want to register it for some methods use `Echo.Match(methods []string, pa
 Echo defines handler function as `func(echo.Context) error` where `echo.Context` primarily
 holds HTTP request and response interfaces.
 
-### Match-any
+## Match-any
 
 Matches zero or more characters in the path. For example, pattern `/users/*` will
 match:
@@ -43,13 +40,13 @@ match:
 - `/users/1/files/1`
 - `/users/anything...`
 
-### Path matching order
+## Path Matching Order
 
 - Static
 - Param
 - Match any
 
-#### Example
+*Example*
 
 ```go
 e.GET("/users/:id", func(c echo.Context) error {
@@ -73,7 +70,7 @@ Above routes would resolve in the following order:
 
 > Routes can be written in any order.
 
-### Group
+## Group
 
 `Echo#Group(prefix string, m ...Middleware) *Group`
 
@@ -95,13 +92,29 @@ g.Use(middleware.BasicAuth(func(username, password string) bool {
 }))
 ```
 
-### URI building
+## Route Naming
 
-`Echo.URI` can be used to generate URI for any handler with specified path parameters.
-It's helpful to centralize all your URI patterns which ease in refactoring your
-application.
+Each of the registration methods returns a `Route` object, which can be used to name a route after the registration. For example:
 
-`e.URI(h, 1)` will generate `/users/1` for the route registered below
+```go
+route := e.POST("/users", func(c echo.Context) error {
+})
+route.Name = "create-user"
+
+// or using the inline syntax
+e.GET("/users/:id", func(c echo.Context) error {
+}).Name = "get-user"
+```
+
+Route names can be very useful when generating URIs from the templates, where you can't access the handler references or when you have multiple routes with the same handler.
+
+## URI Building
+
+`Echo#URI(handler HandlerFunc, params ...interface{})` can be used to generate URI for any handler with specified path parameters. It's helpful to centralize all your
+URI patterns which ease in refactoring your application.
+
+
+For example, `e.URI(h, 1)` will generate `/users/1` for the route registered below:
 
 ```go
 // Handler
@@ -111,4 +124,81 @@ h := func(c echo.Context) error {
 
 // Route
 e.GET("/users/:id", h)
+```
+
+In addition to `Echo#URI`, there is also `Echo#Reverse(name string, params ...interface{})` which is used to generate URIs based on the route name. For example a call to `Echo#Reverse("foobar", 1234)` would generate the URI `/users/1234` if the `foobar` route is registered like below:
+
+```go
+// Handler
+h := func(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
+}
+
+// Route
+e.GET("/users/:id", h).Name = "foobar"
+```
+
+## List Routes
+
+`Echo#Routes() []*Route` can be used to list all registered routes in the order
+they are defined. Each route contains HTTP method, path and an associated handler.
+
+*Example*
+
+```go
+// Handlers
+func createUser(c echo.Context) error {
+}
+
+func findUser(c echo.Context) error {
+}
+
+func updateUser(c echo.Context) error {
+}
+
+func deleteUser(c echo.Context) error {
+}
+
+// Routes
+e.POST("/users", createUser)
+e.GET("/users", findUser)
+e.PUT("/users", updateUser)
+e.DELETE("/users", deleteUser)
+```
+
+Using the following code you can output all the routes to a JSON file:
+
+```go
+data, err := json.MarshalIndent(e.Routes(), "", "  ")
+if err != nil {
+	return err
+}
+ioutil.WriteFile("routes.json", data, 0644)
+```
+
+`routes.json`
+
+```json
+[
+  {
+    "method": "POST",
+    "path": "/users",
+    "name": "main.createUser"
+  },
+  {
+    "method": "GET",
+    "path": "/users",
+    "name": "main.findUser"
+  },
+  {
+    "method": "PUT",
+    "path": "/users",
+    "name": "main.updateUser"
+  },
+  {
+    "method": "DELETE",
+    "path": "/users",
+    "name": "main.deleteUser"
+  }
+]
 ```

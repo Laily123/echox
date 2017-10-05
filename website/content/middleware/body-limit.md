@@ -1,14 +1,12 @@
 +++
-title = "Body Limit"
-[menu.side]
-  name = "BodyLimit"
+title = "Body Limit Middleware"
+description = "Body limit middleware for Echo"
+[menu.main]
+  name = "Body Limit"
   parent = "middleware"
-  weight = 5
 +++
 
-## BodyLimit Middleware
-
-BodyLimit middleware sets the maximum allowed size for a request body, if the
+Body limit middleware sets the maximum allowed size for a request body, if the
 size exceeds the configured limit, it sends "413 - Request Entity Too Large"
 response. The body limit is determined based on both `Content-Length` request
 header and actual content read, which makes it super secure.
@@ -22,17 +20,17 @@ G, T or P.
 e := echo.New()
 e.Use(middleware.BodyLimit("2M"))
 ```
-### Custom Configuration
+
+## Custom Configuration
 
 *Usage*
 
 ```go
 e := echo.New()
-e.Use(middleware.BodyLimitWithConfig(middleware.BodyLimitConfig{},
-}))
+e.Use(middleware.BodyLimitWithConfig(middleware.BodyLimitConfig{}))
 ```
 
-### Configuration
+## Configuration
 
 ```go
 BodyLimitConfig struct {
@@ -49,6 +47,6 @@ BodyLimitConfig struct {
 
 ```go
 DefaultBodyLimitConfig = BodyLimitConfig{
-  Skipper: defaultSkipper,
+  Skipper: DefaultSkipper,
 }
 ```

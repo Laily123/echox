@@ -1,42 +1,36 @@
 +++
-title = "Basic Auth"
-[menu.side]
-  name = "BasicAuth"
+title = "Basic Auth Middleware"
+description = "Basic auth middleware for Echo"
+[menu.main]
+  name = "Basic Auth"
   parent = "middleware"
-  weight = 5
 +++
 
-## BasicAuth Middleware
-
-BasicAuth middleware provides an HTTP basic authentication.
+Basic auth middleware provides an HTTP basic authentication.
 
 - For valid credentials it calls the next handler.
-- For invalid credentials, it sends "401 - Unauthorized" response.
-- For empty or invalid `Authorization` header, it sends "400 - Bad Request" response.
+- For missing or invalid credentials, it sends "401 - Unauthorized" response.
 
 *Usage*
 
 ```go
-e := echo.New()
-e.Use(middleware.BasicAuth(func(username, password string) bool {
+e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
 	if username == "joe" && password == "secret" {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }))
 ```
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
 ```go
-e := echo.New()
-e.Use(middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{},
-}))
+e.Use(middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{}))
 ```
 
-### Configuration
+## Configuration
 
 ```go
 BasicAuthConfig struct {
@@ -46,6 +40,10 @@ BasicAuthConfig struct {
   // Validator is a function to validate BasicAuth credentials.
   // Required.
   Validator BasicAuthValidator
+
+  // Realm is a string to define realm attribute of BasicAuth.
+  // Default value "Restricted".
+  Realm string
 }
 ```
 
@@ -53,6 +51,6 @@ BasicAuthConfig struct {
 
 ```go
 DefaultBasicAuthConfig = BasicAuthConfig{
-	Skipper: defaultSkipper,
+	Skipper: DefaultSkipper,
 }
 ```

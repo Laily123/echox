@@ -1,12 +1,10 @@
 +++
-title = "Gzip"
-[menu.side]
+title = "Gzip Middleware"
+description = "Gzip middleware for Echo"
+[menu.main]
   name = "Gzip"
   parent = "middleware"
-  weight = 5
 +++
-
-## Gzip Middleware
 
 Gzip middleware compresses HTTP response using gzip compression scheme.
 
@@ -14,7 +12,7 @@ Gzip middleware compresses HTTP response using gzip compression scheme.
 
 `e.Use(middleware.Gzip())`
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -25,7 +23,7 @@ e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 }))
 ```
 
-### Configuration
+## Configuration
 
 ```go
 GzipConfig struct {
@@ -42,7 +40,7 @@ GzipConfig struct {
 
 ```go
 DefaultGzipConfig = GzipConfig{
-  Skipper: defaultSkipper,
+  Skipper: DefaultSkipper,
   Level:   -1,
 }
 ```

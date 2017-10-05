@@ -1,101 +1,209 @@
----
-title: Request
-menu:
-  side:
-    parent: guide
-    weight: 6
----
++++
+title = "Request"
+description = "Handling HTTP request in Echo"
+[menu.main]
+  name = "Request"
+  parent = "guide"
++++
 
-## HTTP Request
+## Bind Data
 
-### Handler path
+To bind request body into a Go type use `Context#Bind(i interface{})`.
+The default binder supports decoding application/json, application/xml and
+application/x-www-form-urlencoded data based on the Content-Type header.
 
-`Context#Path()` returns the registered path for the handler, it can be used in the
-middleware for logging purpose.
-
-*Example*
+Example below binds the request payload into `User` struct based on tags:
 
 ```go
-e.Use(func(c echo.Context) error {
-    println(c.Path()) // Prints `/users/:name`
-    return nil
-})
-e.GET("/users/:name", func(c echo.Context) error) {
-    return c.String(http.StatusOK, name)
-})
+// User
+User struct {
+  Name  string `json:"name" form:"name" query:"name"`
+  Email string `json:"email" form:"email" query:"email"`
+}
 ```
 
-### golang.org/x/net/context
-
-`echo.Context` embeds `context.Context` interface, so all it's functions
-are available right from `echo.Context`.
-
-*Example*
-
 ```go
-e.GET("/users/:name", func(c echo.Context) error) {
-    c.SetNetContext(context.WithValue(nil, "key", "val"))
-    // Pass it down...
-    // Use it...
-    val := c.Value("key").(string)
-    return c.String(http.StatusOK, name)
-})
+// Handler
+func(c echo.Context) (err error) {
+  u := new(User)
+  if err = c.Bind(u); err != nil {
+    return
+  }
+  return c.JSON(http.StatusOK, u)
+}
 ```
 
-### Path parameter
+### JSON Data
 
-Path parameter can be retrieved either by name `Context#Param(name string) string`
-or by index `Context#P(i int) string`. Getting parameter by index gives a slightly
-better performance.
+```sh
+curl \
+  -X POST \
+  http://localhost:1323/users \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Joe","email":"joe@labstack"}'
+```
+
+### Form Data
+
+```sh
+curl \
+  -X POST \
+  http://localhost:1323/users \
+  -d 'name=Joe' \
+  -d 'email=joe@labstack.com'
+```
+
+### Query Parameters
+
+```sh
+curl \
+  -X GET \
+  http://localhost:1323/users\?name\=Joe\&email\=joe@labstack.com
+```
+
+## Custom Binder
+
+Custom binder can be registered using `Echo#Binder`.
 
 *Example*
 
 ```go
-e.GET("/users/:name", func(c echo.Context) error {
-	// By name
-	name := c.Param("name")
+type CustomBinder struct {}
 
-	// By index
-	name := c.P(0)
+func (cb *CustomBinder) Bind(i interface{}, c echo.Context) (err error) {
+	// You may use default binder
+	db := new(echo.DefaultBinder)
+	if err = db.Bind(i, c); err != echo.ErrUnsupportedMediaType {
+		return
+	}
 
+	// Define your custom implementation
+
+	return
+}
+```
+
+## Retrieve Data
+
+### Form Data
+
+Form data can be retrieved by name using `Context#FormValue(name string)`.
+
+*Example*
+
+```go
+// Handler
+func(c echo.Context) error {
+	name := c.FormValue("name")
 	return c.String(http.StatusOK, name)
-})
+}
 ```
 
 ```sh
-$ curl http://localhost:1323/users/joe
+curl \
+  -X POST \
+  http://localhost:1323 \
+  -d 'name=Joe'
 ```
 
-### Query parameter
-
-Query parameter can be retrieved by name using `Context#QueryParam(name string)`.
+To bind a custom data type, you can implement `Echo#BindUnmarshaler` interface.
 
 *Example*
 
 ```go
-e.GET("/users", func(c echo.Context) error {
+type Timestamp time.Time
+
+func (t *Timestamp) UnmarshalParam(src string) error {
+	ts, err := time.Parse(time.RFC3339, src)
+	*t = Timestamp(ts)
+	return err
+}
+```
+
+### Query Parameters
+
+Query parameters can be retrieved by name using `Context#QueryParam(name string)`.
+
+*Example*
+
+```go
+// Handler
+func(c echo.Context) error {
 	name := c.QueryParam("name")
 	return c.String(http.StatusOK, name)
 })
 ```
 
 ```sh
-$ curl -G -d "name=joe" http://localhost:1323/users
+curl \
+  -X GET \
+  http://localhost:1323\?name\=Joe
 ```
 
-### Form parameter
+Similar to form data, custom data type can be bind using `Context#QueryParam(name string)`.
 
-Form parameter can be retrieved by name using `Context#FormValue(name string)`.
+### Path Parameters
+
+Registered path parameters can be retrieved by name using `Context#Param(name string) string`.
 
 *Example*
 
 ```go
-e.POST("/users", func(c echo.Context) error {
-	name := c.FormValue("name")
+e.GET("/users/:name", func(c echo.Context) error {
+	name := c.Param("name")
 	return c.String(http.StatusOK, name)
 })
 ```
 
 ```sh
-$ curl -d "name=joe" http://localhost:1323/users
+$ curl http://localhost:1323/users/Joe
+```
+
+## Validate Data
+
+Echo doesn't have a built-in data validation capabilities, however, you can register
+a custom validator using `Echo#Validator` and leverage third-party [libraries](https://github.com/avelino/awesome-go#validation).
+
+Example below uses https://github.com/go-playground/validator framework for validation:
+
+```go
+type (
+	User struct {
+		Name  string `json:"name" validate:"required"`
+		Email string `json:"email" validate:"required,email"`
+	}
+
+	CustomValidator struct {
+		validator *validator.Validate
+	}
+)
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
+
+func main() {
+	e := echo.New()
+	e.Validator = &CustomValidator{validator: validator.New()}
+	e.POST("/users", func(c echo.Context) (err error) {
+		u := new(User)
+		if err = c.Bind(u); err != nil {
+			return
+		}
+		if err = c.Validate(u); err != nil {
+			return
+		}
+		return c.JSON(http.StatusOK, u)
+	})
+	e.Logger.Fatal(e.Start(":1323"))
+}
+```
+
+```sh
+curl \
+  -X POST \
+  http://localhost:1323/users \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Joe","email":"joe@invalid-domain"}'
+{"message":"Key: 'User.Email' Error:Field validation for 'Email' failed on the 'email' tag"}
 ```

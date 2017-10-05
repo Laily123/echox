@@ -1,12 +1,10 @@
 +++
-title = "Secure"
-[menu.side]
+title = "Secure Middleware"
+description = "Secure middleware for Echo"
+[menu.main]
   name = "Secure"
   parent = "middleware"
-  weight = 5
 +++
-
-## Secure Middleware
 
 Secure middleware provides protection against cross-site scripting (XSS) attack,
 content type sniffing, clickjacking, insecure connection and other code injection
@@ -16,7 +14,7 @@ attacks.
 
 `e.Use(middleware.Secure())`
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -34,7 +32,7 @@ e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 Passing empty `XSSProtection`, `ContentTypeNosniff`, `XFrameOptions` or `ContentSecurityPolicy`
 disables that protection.
 
-### Configuration
+## Configuration
 
 ```go
 SecureConfig struct {
@@ -89,7 +87,7 @@ SecureConfig struct {
 
 ```go
 DefaultSecureConfig = SecureConfig{
-  Skipper:            defaultSkipper,
+  Skipper:            DefaultSkipper,
   XSSProtection:      "1; mode=block",
   ContentTypeNosniff: "nosniff",
   XFrameOptions:      "SAMEORIGIN",

@@ -1,12 +1,10 @@
 +++
-title = "Recover"
-[menu.side]
+title = "Recover Middleware"
+description = "Recover middleware for Echo"
+[menu.main]
   name = "Recover"
   parent = "middleware"
-  weight = 5
 +++
-
-## Recover Middleware
 
 Recover middleware recovers from panics anywhere in the chain, prints stack trace
 and handles the control to the centralized
@@ -16,7 +14,7 @@ and handles the control to the centralized
 
 `e.Use(middleware.Recover())`
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -30,7 +28,7 @@ e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 Example above uses a `StackSize` of 1 KB and default values for `DisableStackAll`
 and `DisablePrintStack`.
 
-### Configuration
+## Configuration
 
 ```go
 RecoverConfig struct {
@@ -56,7 +54,7 @@ RecoverConfig struct {
 
 ```go
 DefaultRecoverConfig = RecoverConfig{
-  Skipper:           defaultSkipper,
+  Skipper:           DefaultSkipper,
   StackSize:         4 << 10, // 4 KB
   DisableStackAll:   false,
   DisablePrintStack: false,

@@ -1,12 +1,10 @@
 +++
-title = "Static"
-[menu.side]
+title = "Static Middleware"
+description = "Static middleware for Echo"
+[menu.main]
   name = "Static"
   parent = "middleware"
-  weight = 5
 +++
-
-## Static Middleware
 
 Static middleware can be used to serve static files from the provided root directory.
 
@@ -20,7 +18,7 @@ e.Use(middleware.Static("/static"))
 This serves static files from `static` directory. For example, a request to `/js/main.js`
 will fetch and serve `static/js/main.js` file.
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -34,7 +32,7 @@ e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 
 This serves static files from `static` directory and enables directory browsing.
 
-### Configuration
+## Configuration
 
 ```go
 StaticConfig struct {
@@ -64,7 +62,7 @@ StaticConfig struct {
 
 ```go
 DefaultStaticConfig = StaticConfig{
-  Skipper: defaultSkipper,
+  Skipper: DefaultSkipper,
   Index:   "index.html",
 }
 ```

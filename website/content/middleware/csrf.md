@@ -1,12 +1,10 @@
 +++
-title = "CSRF"
-[menu.side]
+title = "CSRF Middleware"
+description = "CSRF middleware for Echo"
+[menu.main]
   name = "CSRF"
   parent = "middleware"
-  weight = 5
 +++
-
-## CSRF Middleware
 
 Cross-site request forgery, also known as one-click attack or session riding and
 abbreviated as CSRF (sometimes pronounced sea-surf) or XSRF, is a type of malicious
@@ -17,7 +15,7 @@ the website trusts.
 
 `e.Use(middleware.CSRF())`
 
-### Custom Configuration
+## Custom Configuration
 
 *Usage*
 
@@ -30,21 +28,20 @@ e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 
 Example above uses `X-XSRF-TOKEN` request header to extract CSRF token.
 
-### Accessing CSRF Token
+## Accessing CSRF Token
 
-#### Server-side
+### Server-side
 
 CSRF token can be accessed from `Echo#Context` using `ContextKey` and passed to
 the client via template.
 
-#### Client-side
+### Client-side
 
 CSRF token can be accessed from CSRF cookie.
 
-### Configuration
+## Configuration
 
 ```go
-// CSRFConfig defines the config for CSRF middleware.
 CSRFConfig struct {
   // Skipper defines a function to skip middleware.
   Skipper Skipper
@@ -96,7 +93,7 @@ CSRFConfig struct {
 
 ```go
 DefaultCSRFConfig = CSRFConfig{
-  Skipper:      defaultSkipper,
+  Skipper:      DefaultSkipper,
   TokenLength:  32,
   TokenLookup:  "header:" + echo.HeaderXCSRFToken,
   ContextKey:   "csrf",
